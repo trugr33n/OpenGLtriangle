@@ -16,8 +16,10 @@ class Autobuilder(metaclass=AutobuilderMeta):
     def __init__(self, gen: str):
         self._generator: str = gen
         self._currentDir: str = os.getcwd()
+
+        # TODO Заменить на pathlib
         self._buildFolder: str = os.path.join(self._currentDir, "build")
-        self._dllFolder: str = os.path.join(self._currentDir, f"dll/{gen}")
+        self._sharedObjectFolder: str = os.path.join(self._currentDir, f"dll/{gen}")
 
         if gen == "VS":
             self._destFolder: str = os.path.join(self._buildFolder, "Debug")
@@ -31,7 +33,7 @@ class Autobuilder(metaclass=AutobuilderMeta):
                 ["mingw32-make"],
             ]
 
-        self._dllFiles: list = [f for f in os.listdir(self._dllFolder) if os.path.isfile(os.path.join(self._dllFolder, f))]
+        self.sharedObjectFiles: list = [f for f in os.listdir(self._sharedObjectFolder) if os.path.isfile(os.path.join(self._sharedObjectFolder, f))]
     
     def build(self):
         sub.run("cls" if os.name == "nt" else "clear", shell=True)
@@ -54,17 +56,17 @@ class Autobuilder(metaclass=AutobuilderMeta):
                 log.error(f"Error while running command \"{' '.join(command)}\"")
                 exit(1)
         
-        self._dll_checkout()
+        self.shared_object_checkout()
         
-    def _dll_checkout(self):
+    def shared_object_checkout(self):
         targetFolder: str = self._target_folder_checkout
 
-        for thing in self._dllFiles:
+        for thing in self.sharedObjectFiles:
             if os.path.isfile(os.path.join(targetFolder, thing)):
                 log.info(f"dll file {thing} exists in {targetFolder}")
             else:
                 log.info(f"dll file {thing} doesn't exist in {targetFolder}. Copying to folder... ")
-                copier.copy(os.path.join(self._dllFolder, thing), targetFolder)
+                copier.copy(os.path.join(self._sharedObjectFolder, thing), targetFolder)
                 log.info(f"dll file {thing} copied successfully")
     
     @property
